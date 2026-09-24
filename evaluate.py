@@ -17,12 +17,12 @@ A high differential score with a bad quality score is not a good result.
 Read the README section "Why correctness is not the whole score".
 """
 from __future__ import annotations
-import argparse, json, random, re, string, subprocess, sys, pathlib
+import argparse, json, random, re, string, subprocess, sys, pathlib, os
 
 HERE = pathlib.Path(__file__).parent
 RUST = HERE / "rust"
 LIB  = RUST / "src" / "lib.rs"
-BIN  = RUST / "target" / "release" / "harness"
+BIN  = RUST / "target" / "release" / ("harness.exe" if os.name == "nt" else "harness")
 
 try:
     import semver as ref
@@ -151,6 +151,7 @@ def main():
     # 2 --------------------------------------------------------- cargo test
     t = subprocess.run(["cargo", "test", "--release"], cwd=RUST,
                        capture_output=True, text=True)
+    R["cargo_test_returncode"] = t.returncode
     m = re.search(r"(\d+) passed; (\d+) failed", t.stdout)
     R["cargo_test"] = {"passed": int(m.group(1)), "failed": int(m.group(2))} if m else None
     if R["cargo_test"]:
